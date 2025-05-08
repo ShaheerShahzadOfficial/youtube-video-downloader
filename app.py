@@ -3,6 +3,7 @@ This is a simple YouTube downloader app built with Streamlit.
 It allows users to download videos and audio from YouTube.
 
 """
+
 from io import BytesIO
 from urllib.parse import urlparse, parse_qs
 import tempfile
@@ -61,6 +62,7 @@ def download_youtube_content(url, audio_only=False):
             "prefer_ffmpeg": True,
             "noplaylist": True,
             "quiet": True,
+            "geo_bypass": True,
         }
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
