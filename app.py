@@ -26,36 +26,45 @@ def download_youtube_content(url, audio_only=False):
     ydl_opts = {
         'format': 'bestaudio/best' if audio_only else 'bestvideo+bestaudio/best',
         'outtmpl': output_path,
-        'quiet': True,
+        'quiet': False,  # Set to False for verbose output
         'noplaylist': True,
-        'geo_bypass': True,
+        'geo_bypass': True,  # Allow geo-bypass
         'prefer_ffmpeg': True,
         'merge_output_format': 'mp4' if not audio_only else None,
+        'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",  # Example User-Agent
+        # 'cookies': 'path_to_your_cookies.txt',  # Optional: provide cookies.txt if necessary
         'postprocessors': [{
             'key': 'FFmpegExtractAudio' if audio_only else 'FFmpegVideoConvertor',
             'preferredcodec': 'mp3' if audio_only else 'mp4',
             'preferredquality': '192'
-        }] if audio_only else []
+        }] if audio_only else [],
     }
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        title = info.get('title', 'download')
-        filename = f"{title}.{ext}"
-        file_path = os.path.join(temp_dir, filename)
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=True)
+            title = info.get('title', 'download')
+            filename = f"{title}.{ext}"
+            file_path = os.path.join(temp_dir, filename)
 
-        # Fallback in case expected filename doesn't exist
-        if not os.path.exists(file_path):
-            for f in os.listdir(temp_dir):
-                if f.endswith(ext):
-                    file_path = os.path.join(temp_dir, f)
-                    break
+            # Fallback in case expected filename doesn't exist
+            if not os.path.exists(file_path):
+                for f in os.listdir(temp_dir):
+                    if f.endswith(ext):
+                        file_path = os.path.join(temp_dir, f)
+                        break
 
-        with open(file_path, "rb") as f:
-            content = f.read()
+            with open(file_path, "rb") as f:
+                content = f.read()
 
-    shutil.rmtree(temp_dir)  # Clean up all temp files
-    return BytesIO(content), filename, f"audio/{ext}" if audio_only else f"video/{ext}"
+        shutil.rmtree(temp_dir)  # Clean up all temp files
+        return BytesIO(content), filename, f"audio/{ext}" if audio_only else f"video/{ext}"
+
+    except yt_dlp.utils.DownloadError as e:
+        raise Exception(f"Download error: {str(e)}")
+    except Exception as e:
+        raise Exception(f"Unexpected error: {str(e)}")
+
 
 # -------------------- Streamlit UI --------------------
 
@@ -81,7 +90,5 @@ if st.button("Download"):
                     file_name=filename,
                     mime=mime
                 )
-            except yt_dlp.utils.DownloadError as e:
-                st.error("🚫 This video is not available in your region or is age-restricted.")
             except Exception as e:
-                st.error(f"🚨 Unexpected error: {str(e)}")
+                st.error(f"🚨 Error: {str(e)}")
