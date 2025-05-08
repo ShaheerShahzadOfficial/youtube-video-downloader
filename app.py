@@ -32,7 +32,7 @@ def download_youtube_content(url, audio_only=False):
         'prefer_ffmpeg': True,
         'merge_output_format': 'mp4' if not audio_only else None,
         'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",  # Example User-Agent
-        # 'cookies': 'path_to_your_cookies.txt',  # Optional: provide cookies.txt if necessary
+        'cookies': 'path_to_your_cookies.txt',  # Path to the cookies.txt file
         'postprocessors': [{
             'key': 'FFmpegExtractAudio' if audio_only else 'FFmpegVideoConvertor',
             'preferredcodec': 'mp3' if audio_only else 'mp4',
